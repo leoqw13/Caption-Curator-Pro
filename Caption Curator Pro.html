@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en" class="transition duration-500">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🌟 Caption Curator Pro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <script src="https://unpkg.com/feather-icons"></script>
+  <style>
+    body, [class*="bg-"], [class*="text-"], [class*="border-"] {
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+    .caption-card:hover {
+      transform: scale(1.03);
+    }
+    .tooltip-container {
+      position: relative;
+      display: inline-block;
+    }
+    .tooltip-text {
+      visibility: hidden;
+      width: max-content;
+      max-width: 150px;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 6px 10px;
+      position: absolute;
+      z-index: 100;
+      top: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 0.75rem;
+      font-weight: 400;
+    }
+    .tooltip-container:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
+    .tooltip-text::after {
+      content: "";
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: transparent transparent rgba(0, 0, 0, 0.8) transparent;
+    }
+    .dark .tooltip-text {
+      background-color: rgba(255, 255, 255, 0.8);
+      color: #000;
+    }
+    .dark .tooltip-text::after {
+      border-color: transparent transparent rgba(255, 255, 255, 0.8) transparent;
+    }
+    #edit-modal, #clear-modal {
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    #edit-modal.hidden, #clear-modal.hidden {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    #edit-modal:not(.hidden), #clear-modal:not(.hidden) {
+      opacity: 1;
+      transform: scale(1);
+    }
+  </style>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gradient-to-br from-sky-100 to-white dark:from-gray-900 dark:to-gray-800 min-h-screen p-6 font-sans">
+
+  <!-- Header -->
+  <div class="max-w-6xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl animate_animated animate_fadeIn text-center">
+    <div class="flex justify-between items-center">
+      <h1 class="text-3xl font-bold text-blue-700 dark:text-blue-300 flex items-center gap-2">
+        <i data-feather="zap" class="text-yellow-400 dark:text-yellow-300"></i> Caption Curator Pro
+      </h1>
+      <div class="tooltip-container">
+        <button id="theme-toggle" class="p-2 rounded-full hover:bg-blue-100 dark:hover:bg-gray-700 transition duration-200" aria-label="Toggle dark/light mode">
+          <svg id="theme-icon" class="w-7 h-7 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path id="theme-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
+        <span class="tooltip-text">Toggle dark/light mode</span>
+      </div>
+    </div>
+
+    <!-- Form and Live Preview -->
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- Form -->
+      <form id="captionForm" class="grid gap-4 animate_animated animate_fadeInUp">
+        <div>
+          <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Caption List Title</label>
+          <input id="listTitle" type="text" placeholder="e.g., Clickbait Wonders" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg p-2 focus:ring-2 focus:ring-blue-500" autofocus>
+        </div>
+        <div>
+          <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Caption</label>
+          <textarea id="captionInput" rows="2" placeholder="Write a fire caption..." class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg p-2 focus:ring-2 focus:ring-blue-500"></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Focus</label>
+          <select id="focusSelect" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
+            <option value="Click-Through">Click-Through</option>
+            <option value="Branding">Branding</option>
+            <option value="Engagement">Engagement</option>
+            <option value="Conversion">Conversion</option>
+          </select>
+        </div>
+        <div class="flex items-end justify-end">
+          <button type="submit" class="w-full bg-blue-600 dark:bg-blue-500 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition flex items-center justify-center gap-2">
+            <i data-feather="plus-circle"></i> Add Caption
+          </button>
+        </div>
+      </form>
+
+      <!-- Live Preview -->
+      <div id="livePreview" class="animate_animated animate_fadeInUp">
+        <h2 class="text-md font-semibold text-gray-700 dark:text-gray-300 mb-2">Live Preview</h2>
+        <div id="previewCard" class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl p-4 shadow h-[calc(100%-2rem)] flex items-center justify-center">
+          <p class="text-gray-400 dark:text-gray-500 italic text-sm">Type a caption to preview it here</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="mt-6">
+      <h2 class="text-md font-semibold text-gray-700 dark:text-gray-300 mb-2">Filter by Focus</h2>
+      <div id="filters" class="flex gap-3 flex-wrap">
+        <button class="filter-btn bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 px-3 py-1 rounded-full" data-focus="All">All</button>
+        <button class="filter-btn bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 px-3 py-1 rounded-full" data-focus="Click-Through">Click-Through</button>
+        <button class="filter-btn bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300 px-3 py-1 rounded-full" data-focus="Branding">Branding</button>
+        <button class="filter-btn bg-pink-100 dark:bg-pink-900 text-pink-800 dark:text-pink-300 px-3 py-1 rounded-full" data-focus="Engagement">Engagement</button>
+        <button class="filter-btn bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-300 px-3 py-1 rounded-full" data-focus="Conversion">Conversion</button>
+      </div>
+    </div>
+
+    <!-- Caption List -->
+    <div class="mt-8 flex justify-between items-center">
+      <h3 id="captionListTitle" class="text-2xl font-bold text-gray-800 dark:text-gray-200">Your Captions</h3>
+      <button id="clearList" class="bg-red-500 dark:bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-600 dark:hover:bg-red-700 flex items-center gap-2">
+        <i data-feather="trash-2"></i> Clear All
+      </button>
+    </div>
+    <div id="captionList" class="grid md:grid-cols-2 gap-4 mt-4"></div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="edit-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-300 dark:border-gray-600 shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto" role="dialog" aria-labelledby="edit-modal-title">
+      <div class="p-6">
+        <div class="flex items-center justify-between border-b border-gray-300 dark:border-gray-600 pb-4 mb-4">
+          <h2 id="edit-modal-title" class="text-xl font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+            <i data-feather="edit-3" class="text-yellow-500 dark:text-yellow-400"></i> Edit Caption
+          </h2>
+          <button id="close-edit-modal" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition" aria-label="Close">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <form id="edit-caption-form" class="space-y-4">
+          <div>
+            <label for="edit-list-title" class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Caption List Title</label>
+            <input id="edit-list-title" type="text" placeholder="e.g., Clickbait Wonders" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg p-2 focus:ring-2 focus:ring-blue-500" required>
+          </div>
+          <div>
+            <label for="edit-caption" class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Caption</label>
+            <textarea id="edit-caption" rows="3" placeholder="Write a fire caption..." class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg p-2 focus:ring-2 focus:ring-blue-500" required></textarea>
+          </div>
+          <div>
+            <label for="edit-focus" class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Focus</label>
+            <select id="edit-focus" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
+              <option value="Click-Through">Click-Through</option>
+              <option value="Branding">Branding</option>
+              <option value="Engagement">Engagement</option>
+              <option value="Conversion">Conversion</option>
+            </select>
+          </div>
+          <div class="flex gap-4 justify-end">
+            <button type="button" id="cancel-edit" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition">Cancel</button>
+            <button type="submit" class="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition flex items-center gap-2">
+              <i data-feather="save"></i> Save
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clear Confirmation Modal -->
+  <div id="clear-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-300 dark:border-gray-600 shadow-2xl max-w-md w-full" role="dialog" aria-labelledby="clear-modal-title">
+      <div class="p-6">
+        <div class="flex items-center justify-between border-b border-gray-300 dark:border-gray-600 pb-4 mb-4">
+          <h2 id="clear-modal-title" class="text-xl font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+            <i data-feather="trash-2" class="text-red-500 dark:text-red-400"></i> Confirm Clear
+          </h2>
+          <button id="close-clear-modal" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition" aria-label="Close">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <p class="text-gray-700 dark:text-gray-300 mb-6">Do you want to clear all captions?</p>
+        <div class="flex gap-4 justify-end">
+          <button id="cancel-clear" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition">Cancel</button>
+          <button id="confirm-clear" class="px-4 py-2 bg-red-500 dark:bg-red-600 text-white rounded-lg hover:bg-red-600 dark:hover:bg-red-700 transition flex items-center gap-2">
+            <i data-feather="trash-2"></i> Clear All
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div>
+    <div id="toast" class="fixed bottom-5 right-5 bg-green-500 dark:bg-green-600 text-white px-4 py-2 rounded shadow-lg hidden animate_animated animate_fadeInRight">
+      Caption added successfully!
+    </div>
+    <div class="flex justify-center my-4 gap-4">
+      <button id="exportBtn" class="bg-indigo-500 dark:bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 dark:hover:bg-indigo-700">Export Captions</button>
+      <select id="sortBy" class="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 p-2 rounded text-sm">
+        <option value="latest">Latest</option>
+        <option value="liked">Most Liked</option>
+      </select>
+    </div>
+  </div>
+
+  <script>
+    let captions = JSON.parse(localStorage.getItem('captions')) || [];
+    let isDarkTheme = localStorage.getItem('theme') !== 'light';
+    let currentFilter = 'All'; 
+  
+    const form = document.getElementById('captionForm');
+    const listTitleInput = document.getElementById('listTitle');
+    const captionInput = document.getElementById('captionInput');
+    const focusSelect = document.getElementById('focusSelect');
+    const captionList = document.getElementById('captionList');
+    const clearListBtn = document.getElementById('clearList');
+    const toast = document.getElementById('toast');
+    const filters = document.querySelectorAll('.filter-btn');
+    const themeToggle = document.getElementById('theme-toggle');
+    const previewCard = document.getElementById('previewCard');
+    const editModal = document.getElementById('edit-modal');
+    const editForm = document.getElementById('edit-caption-form');
+    const editListTitle = document.getElementById('edit-list-title');
+    const editCaption = document.getElementById('edit-caption');
+    const editFocus = document.getElementById('edit-focus');
+    const closeEditModal = document.getElementById('close-edit-modal');
+    const cancelEdit = document.getElementById('cancel-edit');
+    const clearModal = document.getElementById('clear-modal');
+    const closeClearModal = document.getElementById('close-clear-modal');
+    const cancelClear = document.getElementById('cancel-clear');
+    const confirmClear = document.getElementById('confirm-clear');
+  
+    // Initialize theme
+    if (isDarkTheme) {
+      document.documentElement.classList.add('dark');
+    }
+  
+    // Feather icons
+    feather.replace();
+  
+    // Theme toggle
+    function toggleTheme() {
+      isDarkTheme = !isDarkTheme;
+      document.documentElement.classList.toggle('dark', isDarkTheme);
+      localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light');
+      updateThemeIcon();
+    }
+  
+    function updateThemeIcon() {
+      const themePath = document.getElementById('theme-path');
+      const tooltip = themeToggle.parentElement.querySelector('.tooltip-text');
+      if (isDarkTheme) {
+        themePath.setAttribute('d', 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z');
+        tooltip.textContent = 'Toggle light mode';
+        themeToggle.setAttribute('aria-label', 'Toggle light mode');
+      } else {
+        themePath.setAttribute('d', 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z');
+        tooltip.textContent = 'Toggle dark mode';
+        themeToggle.setAttribute('aria-label', 'Toggle dark mode');
+      }
+    }
+  
+    themeToggle.addEventListener('click', toggleTheme);
+    updateThemeIcon();
+  
+    // Live Preview Update
+    function updateLivePreview() {
+      const caption = captionInput.value.trim();
+      const focus = focusSelect.value;
+      previewCard.innerHTML = `
+        <div class="w-full">
+          <p class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">${listTitleInput.value || 'Your Captions'}</p>
+          ${caption ? `
+            <p class="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2">${caption}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Focus: ${focus}</p>
+            <div class="flex gap-2">
+              <button id="refineBtn" class="text-yellow-500 dark:text-yellow-400 hover:text-yellow-600 dark:hover:text-yellow-500" title="Refine">
+                <i data-feather="edit-3"></i>
+              </button>
+              <button id="removeBtn" class="text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-500" title="Remove">
+                <i data-feather="x-circle"></i>
+              </button>
+            </div>
+          ` : `
+            <p class="text-gray-400 dark:text-gray-500 italic text-sm">Type a caption to preview it here</p>
+          `}
+        </div>
+      `;
+      feather.replace();
+      if (caption) {
+        document.getElementById('refineBtn').onclick = refineCaption;
+        document.getElementById('removeBtn').onclick = removeCaption;
+      }
+    }
+  
+    // Refine Caption
+    function refineCaption() {
+      const newText = prompt("Refine Caption", captionInput.value);
+      if (newText) {
+        captionInput.value = newText;
+        updateLivePreview();
+      }
+    }
+  
+    // Remove Caption
+    function removeCaption() {
+      captionInput.value = '';
+      focusSelect.value = 'Click-Through';
+      updateLivePreview();
+    }
+  
+    // Edit Modal Functions
+    let currentEditId = null;
+  
+    function showEditModal(id) {
+      const caption = captions.find(c => c.id === id);
+      if (!caption) return;
+  
+      currentEditId = id;
+      editListTitle.value = caption.listTitle || '';
+      editCaption.value = caption.text;
+      editFocus.value = caption.focus;
+  
+      editModal.classList.remove('hidden');
+      editListTitle.focus();
+    }
+  
+    function hideEditModal() {
+      editModal.classList.add('hidden');
+      currentEditId = null;
+      editForm.reset();
+    }
+  
+    editForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!currentEditId) return;
+  
+      const caption = captions.find(c => c.id === currentEditId);
+      if (!caption) return;
+  
+      const newListTitle = editListTitle.value.trim();
+      const newCaption = editCaption.value.trim();
+      if (!newListTitle || !newCaption) {
+        showToast('Title and caption required!', 'error');
+        return;
+      }
+  
+      caption.listTitle = newListTitle;
+      caption.text = newCaption;
+      caption.focus = editFocus.value;
+  
+      localStorage.setItem('captions', JSON.stringify(captions));
+      renderCaptions(currentFilter); 
+      hideEditModal();
+      showToast('Caption updated successfully!', 'success');
+    });
+  
+    closeEditModal.addEventListener('click', hideEditModal);
+    cancelEdit.addEventListener('click', hideEditModal);
+    editModal.addEventListener('click', (e) => {
+      if (e.target === editModal) hideEditModal();
+    });
+  
+    // Clear Modal Functions
+    function showClearModal() {
+      clearModal.classList.remove('hidden');
+      cancelClear.focus();
+    }
+  
+    function hideClearModal() {
+      clearModal.classList.add('hidden');
+    }
+  
+    clearListBtn.onclick = () => {
+      if (captions.length === 0) {
+        showToast('No captions to clear!', 'error');
+        return;
+      }
+      showClearModal();
+    };
+  
+    confirmClear.addEventListener('click', () => {
+      captions = [];
+      localStorage.removeItem('captions');
+      listTitleInput.value = '';
+      captionList.innerHTML = '';
+      currentFilter = 'All'; 
+      updateFilterButtons();
+      renderCaptions(currentFilter);
+      updateLivePreview();
+      hideClearModal();
+      showToast('All captions cleared!', 'success');
+    });
+  
+    closeClearModal.addEventListener('click', hideClearModal);
+    cancelClear.addEventListener('click', hideClearModal);
+    clearModal.addEventListener('click', (e) => {
+      if (e.target === clearModal) hideClearModal();
+    });
+  
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (!editModal.classList.contains('hidden')) hideEditModal();
+        if (!clearModal.classList.contains('hidden')) hideClearModal();
+      }
+    });
+  
+    // Filter Buttons
+    function updateFilterButtons() {
+      filters.forEach(btn => {
+        const focus = btn.dataset.focus;
+        if (focus === currentFilter) {
+          btn.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500', 'dark:ring-blue-400');
+          btn.classList.remove('bg-blue-100', 'bg-green-100', 'bg-yellow-100', 'bg-pink-100', 'bg-purple-100');
+          btn.classList.add(focus === 'All' ? 'bg-blue-200' :
+                           focus === 'Click-Through' ? 'bg-green-200' :
+                           focus === 'Branding' ? 'bg-yellow-200' :
+                           focus === 'Engagement' ? 'bg-pink-200' : 'bg-purple-200');
+        } else {
+          btn.classList.remove('ring-2', 'ring-offset-2', 'ring-blue-500', 'dark:ring-blue-400');
+          btn.classList.remove('bg-blue-200', 'bg-green-200', 'bg-yellow-200', 'bg-pink-200', 'bg-purple-200');
+          btn.classList.add(focus === 'All' ? 'bg-blue-100' :
+                            focus === 'Click-Through' ? 'bg-green-100' :
+                            focus === 'Branding' ? 'bg-yellow-100' :
+                            focus === 'Engagement' ? 'bg-pink-100' : 'bg-purple-100');
+        }
+      });
+    }
+  
+    filters.forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentFilter = btn.dataset.focus;
+        updateFilterButtons();
+        renderCaptions(currentFilter);
+      });
+    });
+  
+    // Event Listeners for Live Preview
+    captionInput.addEventListener('input', updateLivePreview);
+    focusSelect.addEventListener('change', updateLivePreview);
+    listTitleInput.addEventListener('input', updateLivePreview);
+  
+    // Form Submission
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const caption = captionInput.value.trim();
+      const focus = focusSelect.value;
+      const listTitle = listTitleInput.value.trim();
+      if (!listTitle || !caption) {
+        showToast('Title and caption required!', 'error');
+        return;
+      }
+  
+      const id = Date.now();
+      captions.push({ id, text: caption, focus, liked: false, listTitle });
+      localStorage.setItem('captions', JSON.stringify(captions));
+      captionInput.value = '';
+      focusSelect.value = 'Click-Through';
+  
+      if (captions.length === 1) showConfetti();
+      showToast('Caption added successfully!', 'success');
+      renderCaptions(currentFilter); 
+      updateLivePreview();
+    });
+  
+    // Render Captions
+    function renderCaptions(filter = 'All') {
+      captionList.innerHTML = '';
+      (captions.filter(c => filter === 'All' || c.focus === filter)).forEach((c) => {
+        const card = document.createElement('div');
+        card.className = "caption-card bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl p-4 shadow hover:shadow-xl transition animate_animated animate_fadeInUp";
+        card.innerHTML = `
+          <p class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">${c.listTitle || 'Your Captions'}</p>
+          <p class="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2">${c.text}</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Focus: ${c.focus}</p>
+          <div class="flex gap-2">
+            <button class="likeBtn ${c.liked ? 'text-red-500 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}" data-id="${c.id}" title="Like">
+              <i data-feather="${c.liked ? 'heart' : 'heart'}"></i>
+            </button>
+            <button class="editBtn text-yellow-500 dark:text-yellow-400" data-id="${c.id}"><i data-feather="edit-3"></i></button>
+            <button class="deleteBtn text-red-500 dark:text-red-400" data-id="${c.id}"><i data-feather="x-circle"></i></button>
+          </div>
+        `;
+        captionList.appendChild(card);
+      });
+      feather.replace();
+      addCardListeners();
+    }
+  
+    function addCardListeners() {
+      document.querySelectorAll('.deleteBtn').forEach(btn =>
+        btn.onclick = () => {
+          const id = +btn.dataset.id;
+          captions = captions.filter(c => c.id !== id);
+          localStorage.setItem('captions', JSON.stringify(captions));
+          renderCaptions(currentFilter); 
+          showToast('Caption deleted successfully!', 'success');
+        });
+  
+      document.querySelectorAll('.editBtn').forEach(btn =>
+        btn.onclick = () => {
+          const id = +btn.dataset.id;
+          showEditModal(id);
+        });
+  
+      document.querySelectorAll('.likeBtn').forEach(btn =>
+        btn.onclick = () => {
+          const id = +btn.dataset.id;
+          const caption = captions.find(c => c.id === id);
+          caption.liked = !caption.liked;
+          localStorage.setItem('captions', JSON.stringify(captions));
+          renderCaptions(currentFilter); 
+          showToast(caption.liked ? 'Caption liked!' : 'Caption unliked!', 'success');
+        });
+  
+      document.getElementById('sortBy').onchange = (e) => {
+        const sortBy = e.target.value;
+        if (sortBy === 'latest') {
+          captions.sort((a, b) => b.id - a.id);
+        } else if (sortBy === 'liked') {
+          captions.sort((a, b) => (b.liked ? 1 : 0) - (a.liked ? 1 : 0) || b.id - a.id);
+        }
+        renderCaptions(currentFilter);
+      };
+    }
+  
+    // Toast
+    function showToast(message, type = 'success') {
+      toast.textContent = message;
+      toast.classList.remove('hidden', 'bg-green-500', 'dark:bg-green-600', 'bg-red-500', 'dark:bg-red-600');
+      toast.classList.add(type === 'success' ? 'bg-green-500' : 'bg-red-500');
+      toast.classList.add(type === 'success' ? 'dark:bg-green-600' : 'dark:bg-red-600');
+      setTimeout(() => toast.classList.add('hidden'), 2500);
+    }
+  
+    // Confetti
+    function showConfetti() {
+      const duration = 2 * 1000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+      function randomInRange(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+      const interval = setInterval(function () {
+        const timeLeft = animationEnd - Date.now();
+        if (timeLeft <= 0) return clearInterval(interval);
+        confetti(Object.assign({}, defaults, {
+          particleCount: 50,
+          origin: { x: randomInRange(0.1, 0.9), y: Math.random() - 0.2 }
+        }));
+      }, 250);
+    }
+  
+    // Export Captions
+    document.getElementById('exportBtn').onclick = () => {
+      const content = captions.map(c => `${c.listTitle || 'Your Captions'}\n- ${c.text} [${c.focus}]`).join('\n\n');
+      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "captions.txt";
+      a.click();
+      showToast('Captions exported successfully!', 'success');
+    };
+  
+    // Initial render
+    renderCaptions(currentFilter);
+    updateFilterButtons();
+    updateLivePreview();
+  </script>  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+</body>
+</html>
